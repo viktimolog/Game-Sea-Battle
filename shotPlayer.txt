@@ -1,0 +1,111 @@
+void SeaBattle::shotPlayer(HWND hWnd, int id)
+{
+	int shot = id - ButtonBeginId - SHIPS*SHIPS; //0 для поля 0х0 компа
+	int key = -1;
+	HBITMAP hBitmap;
+	for (int i = 0; i < SHIPS; i++)
+	{
+		if (key != -1) break;
+		int square, size = this->getPlayer(PC).getShip(i).getSize();
+		for (int j = 0; j < size; j++)
+		{
+			square = this->getPlayer(PC).getShip(i).getSquare(j);
+			if (square == shot) { key = i; break; }
+		}
+	}
+		if (key!=-1)//попадание
+		{
+			if (this->getPlayer(PC).getShip(key).getSize() == 1)//попал в однопалубник
+			{
+				//this->getPlayer(PC).getShip(key).setStatus(shipDead);
+				this->getPlayer(PC).getShip(key).setSize(0);//корабль убит его размер ставим 0 чтобы больше не опрашивать при стрельбе
+				this->getPlayer(PC).setQuantity(--this->getPlayer(PC).getQuantity());
+				hBitmap = LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_CROSS));
+				SendMessage(GetDlgItem(hWnd, id), BM_SETIMAGE, WPARAM(IMAGE_BITMAP), (LPARAM)hBitmap);
+				MessageBox(0, L"Вы потопили корабль!", L"Результат выстрела:", MB_OK);
+			}
+			else //попал не в однопалубник
+			{
+				this->getPlayer(PC).getShip(key).setDamage(++this->getPlayer(PC).getShip(key).getDamage());
+				hBitmap = LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_CROSS));
+				SendMessage(GetDlgItem(hWnd, id), BM_SETIMAGE, WPARAM(IMAGE_BITMAP), (LPARAM)hBitmap);
+				if (this->getPlayer(PC).getShip(key).getDamage() == this->getPlayer(PC).getShip(key).getSize())
+					//количество попаданий равно количеству палуб корабля, то есть размеру
+				{
+					this->getPlayer(PC).getShip(key).setSize(0);//корабль убит его размер ставим 0 чтобы больше не опрашивать при стрельбе
+					this->getPlayer(PC).setQuantity(--this->getPlayer(PC).getQuantity());
+					MessageBox(0, L"Вы потопили корабль!", L"Результат выстрела:", MB_OK);
+				}
+				else //количество попаданий меньше размера корабля
+				{
+					MessageBox(0, L"Вы ранили корабль!", L"Результат выстрела:", MB_OK);
+				}
+			}
+		}
+		else	//не попал
+		{
+			hBitmap = LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_CLEAR));
+			SendMessage(GetDlgItem(hWnd, id), BM_SETIMAGE, WPARAM(IMAGE_BITMAP), (LPARAM)hBitmap);
+			MessageBox(0, L"Очень жаль, но вы промахнулись!", L"Результат выстрела:", MB_OK);
+		}
+		if (this->getPlayer(PC).getQuantity() == 0)
+			MessageBox(0, L"Поздравляем! Вы победили!", L"Результат игры:", MB_OK);
+
+
+
+		else //ход компьютера
+		{
+			key = -1;
+			shot = rand() % (SHIPS*SHIPS);
+			id = shot + ButtonBeginId;
+
+			for (int i = 0; i < SHIPS; i++)
+			{
+				if (key != -1) break;
+				int square, size = this->getPlayer(USER).getShip(i).getSize();
+				for (int j = 0; j < size; j++)
+				{
+					square = this->getPlayer(USER).getShip(i).getSquare(j);
+					if (square == shot) { key = i; break; }
+				}
+			}
+
+			if (key != -1)//попадание
+			{
+				if (this->getPlayer(USER).getShip(key).getSize() == 1)//попал в однопалубник
+				{
+					this->getPlayer(USER).getShip(key).setSize(0);//корабль убит его размер ставим 0 чтобы больше не опрашивать при стрельбе
+					this->getPlayer(USER).setQuantity(--this->getPlayer(USER).getQuantity());
+					hBitmap = LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_CROSS));
+					SendMessage(GetDlgItem(hWnd, id), BM_SETIMAGE, WPARAM(IMAGE_BITMAP), (LPARAM)hBitmap);
+					MessageBox(0, L"Компьютер потопил Ваш корабль!", L"Результат выстрела:", MB_OK);
+				}
+				else //попал не в однопалубник
+				{
+					this->getPlayer(USER).getShip(key).setDamage(++this->getPlayer(USER).getShip(key).getDamage());
+					hBitmap = LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_CROSS));
+					SendMessage(GetDlgItem(hWnd, id), BM_SETIMAGE, WPARAM(IMAGE_BITMAP), (LPARAM)hBitmap);
+					if (this->getPlayer(USER).getShip(key).getDamage() == this->getPlayer(USER).getShip(key).getSize())
+						//количество попаданий равно количеству палуб корабля, то есть размеру
+					{
+						this->getPlayer(USER).getShip(key).setSize(0);//корабль убит его размер ставим 0 чтобы больше не опрашивать при стрельбе
+						this->getPlayer(USER).setQuantity(--this->getPlayer(USER).getQuantity());
+						MessageBox(0, L"Компьютер потопил Ваш корабль!", L"Результат выстрела:", MB_OK);
+					}
+					else //количество попаданий меньше размера корабля
+					{
+						MessageBox(0, L"Компьютер ранил Ваш корабль!", L"Результат выстрела:", MB_OK);
+					}
+				}
+			}
+			else	//не попал
+			{
+				hBitmap = LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_CLEAR));
+				SendMessage(GetDlgItem(hWnd, id), BM_SETIMAGE, WPARAM(IMAGE_BITMAP), (LPARAM)hBitmap);
+				MessageBox(0, L"УРА!, компьютер промахнулся!", L"Результат выстрела:", MB_OK);
+			}
+			if (this->getPlayer(USER).getQuantity() == 0)
+				MessageBox(0, L"Очень жаль, но Вы проиграли!", L"Результат игры:", MB_OK);
+
+		}
+	}
